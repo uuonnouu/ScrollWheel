@@ -11,19 +11,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo with submodules
+      - name: Checkout with submodules
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install dependencies
+      - name: Init SDK TinyUSB submodule
+        run: |
+          cd pico-sdk
+          git submodule update --init
+
+      - name: Install ARM toolchain
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi build-essential
+          sudo apt-get install -y gcc-arm-none-eabi cmake ninja-build
+
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DPICO_BOARD=pico2
 
       - name: Build
-        run: |
-          mkdir build
-          cd build
-          cmake .. -DPICO_SDK_PATH=../pico-sdk -DPICO_PLATFORM=rp2350
-          make -j4
+        run: cmake --build build
