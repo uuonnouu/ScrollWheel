@@ -47,7 +47,7 @@ static void init_sw_pins(void)
 	debounce_program_init(pio, 0, offset, GPIO_SW1);
 	debounce_program_init(pio, 1, offset, GPIO_SW2);
 	debounce_program_init(pio, 2, offset, GPIO_SW3);
-	debounce_program_init(pio, 3, offset, GPIO_SW3);
+	debounce_program_init(pio, 3, offset, GPIO_SW3);  // <-- SW3 again, should be SW4;
 }
 
 static void write_LED(uint32_t value)
