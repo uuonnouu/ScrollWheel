@@ -4,18 +4,13 @@
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
 #include "hardware/i2c.h"
-#include "ws2812.pio.h"
+#include "led_pwm.h"
 #include "debounce.pio.h"
 
 #include "board_tiny2350.h"
 #include "tusb.h"
 #include "hid-device.h"
 
-static void init_ws2812(void)
-{
-	PIO pio = pio0;
-	int sm = 0;
-	uint offset = pio_add_program(pio, &ws2812_program);
 	ws2812_program_init(pio, sm, offset, WS2812_PIN);
 }
 
