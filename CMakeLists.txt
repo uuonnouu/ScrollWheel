@@ -1,64 +1,46 @@
-cmake_minimum_required(VERSION 3.13...3.27)
+cmake_minimum_required(VERSION 3.13)
 
-# initialize the SDK based on PICO_SDK_PATH
-# note: this must happen before project()
+# Pull in the SDK (your in-tree pico-sdk submodule)
 include(pico-sdk/pico_sdk_init.cmake)
 
-project(rp2350)
+project(rp2350 C CXX ASM)
 
-# initialize the Raspberry Pi Pico SDK
+# Initialise the SDK. PICO_BOARD=pico2 (passed on the cmake command line, or set
+# here BEFORE this call) selects PICO_PLATFORM=rp2350 and the Cortex-M33 toolchain.
 pico_sdk_init()
 
-add_executable(blink)
+add_executable(rp2350)
 
-pico_generate_pio_header(blink ${CMAKE_CURRENT_SOURCE_DIR}/ws2812.pio)
-pico_generate_pio_header(blink ${CMAKE_CURRENT_SOURCE_DIR}/debounce.pio)
+target_sources(rp2350 PRIVATE
+    blink.c
+    hid-device.c          # your USB HID descriptors / tud_* callbacks
+)
+# NOTE: ws2812.pio.h / debounce.pio.h are generated headers, not sources.
+# Generate them with pico_generate_pio_header instead of listing the .h in target_sources:
+#   pico_generate_pio_header(rp2350 ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
+#   pico_generate_pio_header(rp2350 ${CMAKE_CURRENT_LIST_DIR}/debounce.pio)
 
-set(MODE "SCROLLWHEEL" CACHE STRING "Mode: SCROLLWHEEL (default) or VOLUME")
-set_property(CACHE MODE PROPERTY STRINGS SCROLLWHEEL VOLUME)
+# Only project-specific defines remain. Do NOT set CFG_TUSB_MCU/CFG_TUSB_OS here;
+# the SDK's tinyusb integration sets CFG_TUSB_MCU=OPT_MCU_RP2040 and CFG_TUSB_OS=OPT_OS_PICO.
+target_compile_definitions(rp2350 PRIVATE
+    MODE=1
+)
 
-target_compile_definitions(blink PRIVATE
-	${MODE}=1
-	CFG_TUSB_MCU=OPT_MCU_RP2350
-	CFG_TUSB_OS=OPT_OS_PICO
-	CFG_TUSB_DEBUG=0)
+# tusb_config.h lives in include/ (or repo root); make sure TinyUSB can find it.
+target_include_directories(rp2350 PRIVATE
+    ${CMAKE_CURRENT_LIST_DIR}
+    ${CMAKE_CURRENT_LIST_DIR}/include
+)
 
-target_sources(blink PRIVATE
-	blink.c
-	hid-device.c
-	ws2812.pio.h
-	debounce.pio.h
-	tinyusb/src/tusb.c
-	tinyusb/src/common/tusb_fifo.c
-	tinyusb/src/device/usbd.c
-	tinyusb/src/class/hid/hid_device.c
-	tinyusb/src/portable/raspberrypi/rp2350/rp2350_usb.c
-	tinyusb/src/portable/raspberrypi/rp2350/dcd_rp2350.c)
+# Link the SDK's TinyUSB device stack + board support. NO manual tinyusb/src/*.c.
+target_link_libraries(rp2350 PRIVATE
+    pico_stdlib
+    tinyusb_device
+    tinyusb_board
+    hardware_gpio
+    hardware_pio
+    hardware_i2c
+    hardware_pwm
+)
 
-target_link_libraries(blink pico_stdlib
-	hardware_gpio
-	hardware_pio
-	hardware_i2c
-	hardware_pwm)
-
-target_include_directories(blink PRIVATE
-	include
-	tinyusb/src)
-
-#
-# We really don't care about IEEE precision, nor
-# do we want double-precision math just because
-# of some random constant (and adding ".0f" to them
-# everywhere is just cray-cray)
-#
-# Add -fsingle-precision-constant / -Wdouble-promotion
-# when starting to do FP for audio
-#
-target_compile_options(blink PRIVATE
-	-Wall -O2
-	-ffast-math
-	-fsingle-precision-constant
-	-Wfloat-conversion)
-
-# create map/bin/hex/uf2 file in addition to ELF.
-pico_add_extra_outputs(blink)
+pico_add_extra_outputs(rp2350)
