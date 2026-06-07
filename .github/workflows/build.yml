@@ -38,9 +38,4 @@ jobs:
           name: blink-uf2
           path: build/blink.uf2  
 
-      - name: Upload firmware
-        uses: actions/upload-artifact@v4
-        with:
-          name: blink-uf2
-          path: build/blink.uf2
-
+      
