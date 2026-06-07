@@ -1,18 +1,13 @@
 #include "pico/stdlib.h"
 #include "pico/bootrom.h"
-
 #include "hardware/gpio.h"
 #include "hardware/pio.h"
 #include "hardware/i2c.h"
 #include "led_pwm.h"
 #include "debounce.pio.h"
-
 #include "board_tiny2350.h"
 #include "tusb.h"
 #include "hid-device.h"
-
-	ws2812_program_init(pio, sm, offset, WS2812_PIN);
-}
 
 // Initialize a pin for input, pulled up
 static void init_sw_pin(PIO pio, int pin)
@@ -43,12 +38,6 @@ static void init_sw_pins(void)
 	debounce_program_init(pio, 1, offset, GPIO_SW2);
 	debounce_program_init(pio, 2, offset, GPIO_SW3);
 	debounce_program_init(pio, 3, offset, GPIO_SW4);
-;  
-}
-
-static void write_LED(uint32_t value)
-{
-	pio_sm_put_blocking(pio0, 0, value);
 }
 
 static void init_i2c(void)
@@ -68,6 +57,7 @@ static void init_i2c(void)
 // -1 for a bad read
 //
 #define AS5600_I2C_ADDR 0x36
+
 static int as5600_read(uint8_t reg, uint8_t buf[], size_t size)
 {
 	if (i2c_write_blocking(I2C_BUS, AS5600_I2C_ADDR, &reg, 1, false) < 0)
@@ -77,10 +67,10 @@ static int as5600_read(uint8_t reg, uint8_t buf[], size_t size)
 	return 0;
 }
 
-#define AS5600_STATUS		0x0B
-#define AS5600_RAWANGLE_HI	0x0C
-#define AS5600_RAWANGLE_LO	0x0D
-#define AS5600_CONF		0x07
+#define AS5600_STATUS 0x0B
+#define AS5600_RAWANGLE_HI 0x0C
+#define AS5600_RAWANGLE_LO 0x0D
+#define AS5600_CONF 0x07
 
 // Set hysteresis and filtering to max, we do not
 // need fast response, we're better off stable
@@ -134,6 +124,7 @@ static int read_angle(void)
 	static int reset_angle, last_angle;
 
 	int angle = as5600_read_angle();
+
 	if (angle < 0)
 		return last_angle;
 
@@ -167,7 +158,6 @@ static int read_angle(void)
 uint32_t led_color(uint32_t angle)
 {
 	angle = (angle & 0xfff) * 3;
-
 	int byteidx = angle >> 12;
 	int colorval = (angle >> 7) & 31;
 
@@ -190,6 +180,7 @@ static void process_buttons(int sw1, int sw2, int sw3, int sw4)
 	static int last_sw2 = 0;
 	static int last_sw3 = 0;
 	static int last_sw4 = 0;
+
 	uint8_t keycodes[6] = {0}, *p = keycodes;
 
 	if (sw1 == last_sw1 &&
@@ -208,6 +199,7 @@ static void process_buttons(int sw1, int sw2, int sw3, int sw4)
 	if (sw2) *p++ = HID_KEY_F2 + (sw2-1)*4;
 	if (sw3) *p++ = HID_KEY_F3 + (sw3-1)*4;
 	if (sw4) *p++ = HID_KEY_F4 + (sw4-1)*4;
+
 	hid_send_keyboard(0, keycodes);
 }
 
@@ -258,6 +250,7 @@ static void process_angle(unsigned int angle)
 		if (!last_report)
 			return;
 	}
+
 	last_report = report;
 	hid_send_consumer(report);
 #endif
@@ -289,8 +282,8 @@ int main()
 	init_sw_pins();
 	init_i2c();
 	init_usb();
-
 	as5600_init();
+
 	next_led_update = delayed_by_ms(get_absolute_time(), 100);
 	next_hid_update = delayed_by_ms(get_absolute_time(), 100);
 
@@ -304,8 +297,10 @@ int main()
 		}
 
 		tud_task();
+
 		if (now > next_hid_update) {
 			next_hid_update = delayed_by_ms(now, 10);
+
 			int sw1 = read_switch(0), sw2 = read_switch(1),
 			    sw3 = read_switch(2), sw4 = read_switch(3);
 
