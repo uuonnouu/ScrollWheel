@@ -19,9 +19,9 @@ set_property(CACHE MODE PROPERTY STRINGS SCROLLWHEEL VOLUME)
 
 target_compile_definitions(blink PRIVATE
 	${MODE}=1
-        CFG_TUSB_MCU=OPT_MCU_RP2350
-        CFG_TUSB_OS=OPT_OS_PICO
-        CFG_TUSB_DEBUG=0)
+	CFG_TUSB_MCU=OPT_MCU_RP2350
+	CFG_TUSB_OS=OPT_OS_PICO
+	CFG_TUSB_DEBUG=0)
 
 target_sources(blink PRIVATE
 	blink.c
@@ -32,8 +32,8 @@ target_sources(blink PRIVATE
 	tinyusb/src/common/tusb_fifo.c
 	tinyusb/src/device/usbd.c
 	tinyusb/src/class/hid/hid_device.c
-	tinyusb/src/portable/raspberrypi/rp2040/rp2040_usb.c
-	tinyusb/src/portable/raspberrypi/rp2040/dcd_rp2040.c)
+	tinyusb/src/portable/raspberrypi/rp2350/rp2350_usb.c
+	tinyusb/src/portable/raspberrypi/rp2350/dcd_rp2350.c)
 
 target_link_libraries(blink pico_stdlib
 	hardware_gpio
@@ -62,4 +62,3 @@ target_compile_options(blink PRIVATE
 
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(blink)
-
