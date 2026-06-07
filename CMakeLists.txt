@@ -1,46 +1,52 @@
 cmake_minimum_required(VERSION 3.13)
 
-# Pull in the SDK (your in-tree pico-sdk submodule)
+# initialize the SDK based on PICO_SDK_PATH
+# note: this must happen before project()
 include(pico-sdk/pico_sdk_init.cmake)
 
 project(rp2350 C CXX ASM)
 
-# Initialise the SDK. PICO_BOARD=pico2 (passed on the cmake command line, or set
-# here BEFORE this call) selects PICO_PLATFORM=rp2350 and the Cortex-M33 toolchain.
+# initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-add_executable(rp2350)
+add_executable(blink)
 
-target_sources(rp2350 PRIVATE
-    blink.c
-    hid-device.c          # your USB HID descriptors / tud_* callbacks
-)
-# NOTE: ws2812.pio.h / debounce.pio.h are generated headers, not sources.
-# Generate them with pico_generate_pio_header instead of listing the .h in target_sources:
-#   pico_generate_pio_header(rp2350 ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
-#   pico_generate_pio_header(rp2350 ${CMAKE_CURRENT_LIST_DIR}/debounce.pio)
+pico_generate_pio_header(blink ${CMAKE_CURRENT_SOURCE_DIR}/ws2812.pio)
+pico_generate_pio_header(blink ${CMAKE_CURRENT_SOURCE_DIR}/debounce.pio)
 
-# Only project-specific defines remain. Do NOT set CFG_TUSB_MCU/CFG_TUSB_OS here;
-# the SDK's tinyusb integration sets CFG_TUSB_MCU=OPT_MCU_RP2040 and CFG_TUSB_OS=OPT_OS_PICO.
-target_compile_definitions(rp2350 PRIVATE
-    MODE=1
-)
+set(MODE "SCROLLWHEEL" CACHE STRING "Mode: SCROLLWHEEL (default) or VOLUME")
+set_property(CACHE MODE PROPERTY STRINGS SCROLLWHEEL VOLUME)
 
-# tusb_config.h lives in include/ (or repo root); make sure TinyUSB can find it.
-target_include_directories(rp2350 PRIVATE
-    ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/include
-)
+target_compile_definitions(blink PRIVATE
+	${MODE}=1)
 
-# Link the SDK's TinyUSB device stack + board support. NO manual tinyusb/src/*.c.
-target_link_libraries(rp2350 PRIVATE
-    pico_stdlib
-    tinyusb_device
-    tinyusb_board
-    hardware_gpio
-    hardware_pio
-    hardware_i2c
-    hardware_pwm
-)
+target_sources(blink PRIVATE
+	blink.c
+	hid-device.c)
 
-pico_add_extra_outputs(rp2350)
+target_link_libraries(blink
+	pico_stdlib
+	tinyusb_device
+	tinyusb_board
+	hardware_gpio
+	hardware_pio
+	hardware_i2c
+	hardware_pwm)
+
+target_include_directories(blink PRIVATE
+	${CMAKE_CURRENT_SOURCE_DIR}
+	include)
+
+#
+# We really don't care about IEEE precision, nor
+# do we want double-precision math just because
+# of some random constant
+#
+target_compile_options(blink PRIVATE
+	-Wall -O2
+	-ffast-math
+	-fsingle-precision-constant
+	-Wfloat-conversion)
+
+# create map/bin/hex/uf2 file in addition to ELF.
+pico_add_extra_outputs(blink)
