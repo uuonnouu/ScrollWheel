@@ -285,7 +285,7 @@ int main()
 {
 	absolute_time_t next_led_update, next_hid_update;
 
-	init_ws2812();
+	init_led();
 	init_sw_pins();
 	init_i2c();
 	init_usb();
