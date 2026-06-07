@@ -19,7 +19,7 @@ set_property(CACHE MODE PROPERTY STRINGS SCROLLWHEEL VOLUME)
 
 target_compile_definitions(blink PRIVATE
 	${MODE}=1
-        CFG_TUSB_MCU=OPT_MCU_RP2040
+        CFG_TUSB_MCU=OPT_MCU_RP2350
         CFG_TUSB_OS=OPT_OS_PICO
         CFG_TUSB_DEBUG=0)
 
