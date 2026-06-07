@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13...3.27)
+lcmake_minimum_required(VERSION 3.13...3.27)
 
 # initialize the SDK based on PICO_SDK_PATH
 # note: this must happen before project()
@@ -38,7 +38,8 @@ target_sources(blink PRIVATE
 target_link_libraries(blink pico_stdlib
 	hardware_gpio
 	hardware_pio
-	hardware_i2c)
+	hardware_i2c
+	hardware_pwm)
 
 target_include_directories(blink PRIVATE
 	include
