@@ -25,5 +25,5 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DPICO_SDK_PATH=../pico-sdk -DPICO_TINYUSB_PATH=../tinyusb
+          cmake .. -DPICO_SDK_PATH=../pico-sdk -DPICO_PLATFORM=rp2350
           make -j4
