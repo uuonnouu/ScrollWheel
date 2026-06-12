@@ -1,5 +1,3 @@
-# ⚠️ PROJECT NO LONGER MAINTAINED ⚠️
-This repository has been archived by the owner. It is still available for download and forking, but no issues or pull requests will be accepted.
 
 ## Minimal rp2350 project for volume control / scrollwheel
 [![DOI](https://zenodo.org/badge/1262064488
